@@ -37,9 +37,53 @@
 </div>
 
 <p class="hint">
-演示：先点「启动切片」让常规底图渲染到一半，再点「启动应急切片（插队）」——常规立即中止，
-应急算完后常规自动续做，已发布瓦片不重算。点击任意瓦片可打开对应 PNG。
+  演示：先点「启动切片」让常规底图渲染到一半，再点「启动应急切片（插队）」——常规立即中止，
+  应急算完后常规自动续做，已发布瓦片不重算。<strong>点击任意格子（包括尚未点亮的空格）可打开单格预览</strong>：
+  优先看正式瓦片；正式瓦片还没发布时，自动取同一任务最近的已发布上级瓦片，裁出对应区域放大到 256×256，
+  并标出实际取图坐标；没有任何可用来源时显示「暂无图」。预览会自动重验证，更近的上级或正式瓦片发布后自动换图。
 </p>
+
+<!-- 单格预览：点选格子后打开；独立地址 /preview/...，定时带 If-None-Match 重验证 -->
+<div id="preview-modal" class="preview-modal" hidden>
+  <div id="preview" class="preview-dialog" role="dialog" aria-modal="true"
+       aria-labelledby="preview-title" data-testid="cell-preview">
+    <div class="preview-head">
+      <h3 id="preview-title">单格预览</h3>
+      <button id="preview-close" class="ghost preview-close" type="button" aria-label="关闭预览">×</button>
+    </div>
+
+    <div class="preview-body">
+      <div class="preview-stage">
+        <div class="preview-canvas">
+          <img id="preview-image" width="256" height="256" alt="单格放大预览 256×256" hidden>
+          <div id="preview-empty" class="preview-empty" hidden>暂无图</div>
+        </div>
+        <p class="preview-size">输出 256×256 PNG · 最近邻放大</p>
+      </div>
+
+      <div class="preview-side">
+        <p id="preview-source" class="preview-source" data-available="0">尚未选择格子</p>
+
+        <div class="preview-maprow" id="preview-maprow" hidden>
+          <a id="preview-context-link" class="preview-context" target="_blank" rel="noopener"
+             title="打开实际来源瓦片的原 PNG（已发布正式瓦片地址）">
+            <img id="preview-context-img" width="96" height="96" alt="取图位置示意">
+            <span id="preview-context-crop" class="preview-context-crop"></span>
+          </a>
+          <p class="preview-mapcap">红框＝在来源瓦片内的实际裁剪区域</p>
+        </div>
+
+        <p class="preview-links">
+          <a id="preview-raw-link" href="#" target="_blank" rel="noopener" hidden>↗ 打开本格原 PNG（正式瓦片）</a>
+          <span id="preview-raw-na" class="preview-raw-na" hidden>本格正式瓦片尚未发布，<code>/tiles/…</code> 不提供该图</span>
+        </p>
+        <p class="preview-url"><label>预览地址（独立）：</label><code id="preview-url">-</code></p>
+        <p id="preview-rev" class="preview-rev">尚未重验证</p>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="/app.js"></script>
 </body>
 </html>
